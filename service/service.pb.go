@@ -62,7 +62,7 @@ func (m *SimpleRequest) GetName() string {
 }
 
 type SimpleResponse struct {
-	Greeting             string   `protobuf:"bytes,2,opt,name=greeting,proto3" json:"greeting,omitempty"`
+	Message              string   `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -93,9 +93,9 @@ func (m *SimpleResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SimpleResponse proto.InternalMessageInfo
 
-func (m *SimpleResponse) GetGreeting() string {
+func (m *SimpleResponse) GetMessage() string {
 	if m != nil {
-		return m.Greeting
+		return m.Message
 	}
 	return ""
 }
@@ -108,16 +108,17 @@ func init() {
 func init() { proto.RegisterFile("service/service.proto", fileDescriptor_e51e679f9ae460e2) }
 
 var fileDescriptor_e51e679f9ae460e2 = []byte{
-	// 143 bytes of a gzipped FileDescriptorProto
+	// 152 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x2d, 0x4e, 0x2d, 0x2a,
 	0xcb, 0x4c, 0x4e, 0xd5, 0x87, 0xd2, 0x7a, 0x05, 0x45, 0xf9, 0x25, 0xf9, 0x42, 0xec, 0x50, 0xae,
 	0x92, 0x32, 0x17, 0x6f, 0x70, 0x66, 0x6e, 0x41, 0x4e, 0x6a, 0x50, 0x6a, 0x61, 0x69, 0x6a, 0x71,
 	0x89, 0x90, 0x10, 0x17, 0x4b, 0x5e, 0x62, 0x6e, 0xaa, 0x04, 0xa3, 0x02, 0xa3, 0x06, 0x67, 0x10,
-	0x98, 0xad, 0xa4, 0xc3, 0xc5, 0x07, 0x53, 0x54, 0x5c, 0x90, 0x9f, 0x57, 0x9c, 0x2a, 0x24, 0xc5,
-	0xc5, 0x91, 0x5e, 0x94, 0x9a, 0x5a, 0x92, 0x99, 0x97, 0x2e, 0xc1, 0x04, 0x56, 0x09, 0xe7, 0x1b,
-	0xb9, 0x71, 0xb1, 0x07, 0x43, 0x4c, 0x17, 0xb2, 0xe6, 0x62, 0x83, 0x68, 0x14, 0x12, 0xd3, 0x83,
-	0x39, 0x00, 0xc5, 0x3a, 0x29, 0x71, 0x0c, 0x71, 0x88, 0x0d, 0x4a, 0x0c, 0x49, 0x6c, 0x60, 0xa7,
-	0x1a, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0xbb, 0x35, 0xa9, 0xea, 0xc3, 0x00, 0x00, 0x00,
+	0x98, 0xad, 0xa4, 0xc5, 0xc5, 0x07, 0x53, 0x54, 0x5c, 0x90, 0x9f, 0x57, 0x9c, 0x2a, 0x24, 0xc1,
+	0xc5, 0x9e, 0x9b, 0x5a, 0x5c, 0x9c, 0x98, 0x0e, 0x53, 0x08, 0xe3, 0x1a, 0x35, 0x33, 0x72, 0xb1,
+	0x07, 0x43, 0x0c, 0x17, 0xb2, 0xe6, 0x62, 0x83, 0xe8, 0x13, 0x12, 0xd3, 0x83, 0xd9, 0x8f, 0x62,
+	0x9b, 0x94, 0x38, 0x86, 0x38, 0xc4, 0x02, 0x25, 0x06, 0x21, 0x6b, 0x2e, 0x96, 0x80, 0xd2, 0xe2,
+	0x0c, 0x32, 0xb4, 0x1a, 0x30, 0x26, 0xb1, 0x81, 0xbd, 0x69, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff,
+	0x07, 0x7a, 0xa0, 0xee, 0xff, 0x00, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -133,6 +134,7 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ServiceClient interface {
 	Simple(ctx context.Context, in *SimpleRequest, opts ...grpc.CallOption) (*SimpleResponse, error)
+	Push(ctx context.Context, in *SimpleRequest, opts ...grpc.CallOption) (Service_PushClient, error)
 }
 
 type serviceClient struct {
@@ -152,9 +154,42 @@ func (c *serviceClient) Simple(ctx context.Context, in *SimpleRequest, opts ...g
 	return out, nil
 }
 
+func (c *serviceClient) Push(ctx context.Context, in *SimpleRequest, opts ...grpc.CallOption) (Service_PushClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Service_serviceDesc.Streams[0], "/service.Service/Push", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &servicePushClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Service_PushClient interface {
+	Recv() (*SimpleResponse, error)
+	grpc.ClientStream
+}
+
+type servicePushClient struct {
+	grpc.ClientStream
+}
+
+func (x *servicePushClient) Recv() (*SimpleResponse, error) {
+	m := new(SimpleResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ServiceServer is the server API for Service service.
 type ServiceServer interface {
 	Simple(context.Context, *SimpleRequest) (*SimpleResponse, error)
+	Push(*SimpleRequest, Service_PushServer) error
 }
 
 func RegisterServiceServer(s *grpc.Server, srv ServiceServer) {
@@ -179,6 +214,27 @@ func _Service_Simple_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_Push_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SimpleRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ServiceServer).Push(m, &servicePushServer{stream})
+}
+
+type Service_PushServer interface {
+	Send(*SimpleResponse) error
+	grpc.ServerStream
+}
+
+type servicePushServer struct {
+	grpc.ServerStream
+}
+
+func (x *servicePushServer) Send(m *SimpleResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 var _Service_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "service.Service",
 	HandlerType: (*ServiceServer)(nil),
@@ -188,6 +244,12 @@ var _Service_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Service_Simple_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Push",
+			Handler:       _Service_Push_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "service/service.proto",
 }

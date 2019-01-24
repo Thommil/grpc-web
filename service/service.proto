@@ -6,10 +6,11 @@ message SimpleRequest {
 }
 
 message SimpleResponse {
-	string greeting = 2;
+	string message = 1;
 }
 
 service Service {
 	rpc Simple(SimpleRequest) returns (SimpleResponse) {}
+	rpc Push(SimpleRequest) returns (stream SimpleResponse) {}
 }
 
